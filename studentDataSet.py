@@ -6,15 +6,15 @@ from tqdm import tqdm  # For progress tracking
 import re  # For regular expressions to clean lyrics
 
 # --- Configuration (Keep original values) ---
-GENIUS_API_TOKEN = "ZOBbiN15EypwcgYaRYcogdslS7Il9Ou34tJI0ARIZflNvJGJmYa3JxpvV6lAKhO8"
-TARGET_GENRE = "House"
+GENIUS_API_TOKEN = "put the api key here"
+TARGET_GENRE = "Soul"
 OUTPUT_CSV = "Student_dataset.csv"
 TARGET_SONGS = 100
-DELAY_BETWEEN_REQUESTS = 1
+DELAY_BETWEEN_REQUESTS = 10
 
 # --- Enhanced Artist List ---
 artists = [
-     "Frankie Knuckles"
+    "Aretha Franklin", "Marvin Gaye", "Stevie Wonder", "James Brown", "Otis Redding", "Sam Cooke", "Ray Charles", "Al Green", "Gladys Knight", "Curtis Mayfield"
     # ... Add more artists ...
 ]
 
@@ -23,7 +23,8 @@ try:
     genius = lyricsgenius.Genius(GENIUS_API_TOKEN,
                                  skip_non_songs=True,
                                  excluded_terms=["(Remix)", "(Live)", "(Cover)", "Instrumental"],
-                                 remove_section_headers=True)
+                                 remove_section_headers=True,
+                                 timeout=15)
     genius.verbose = False  # Reduce console output clutter
 except Exception as e:
     print(f"Failed to initialize Genius API client: {e}")
@@ -85,12 +86,26 @@ def get_song_data(artist_name):
 
                     # Extract and validate release year
                     release_year = None
-                    if hasattr(genius_song, 'year') and genius_song.year:
-                        try:
-                            release_year = int(genius_song.year.split('-')[0])
 
-                        except (ValueError, AttributeError):
-                            pass
+                    # Fix: Get full song information with release date
+                    song_info = genius.song(genius_song.id)
+                    if song_info and 'song' in song_info and 'release_date' in song_info['song']:
+                        release_date = song_info['song']['release_date']
+                        if release_date:
+                            # Extract year from YYYY-MM-DD format
+                            match = re.search(r'(\d{4})', release_date)
+                            if match:
+                                release_year = match.group(1)
+
+                    # Fallback to album release year if song release date is not available
+                    if not release_year and 'song' in song_info and 'album' in song_info['song'] and song_info['song'][
+                        'album']:
+                        if 'release_date' in song_info['song']['album']:
+                            album_date = song_info['song']['album']['release_date']
+                            if album_date:
+                                match = re.search(r'(\d{4})', album_date)
+                                if match:
+                                    release_year = match.group(1)
 
                     # Validate lyrics
                     lyrics = genius_song.lyrics
@@ -109,7 +124,7 @@ def get_song_data(artist_name):
                         "genre": TARGET_GENRE,
                         "lyrics": lyrics
                     })
-                    print(f"Added song: {genius_song.title}")
+                    print(f"Added song: {genius_song.title}, Release Year: {release_year}")
 
                 except requests.exceptions.RequestException as e:
                     print(f"Network error when retrieving {song.title}: {e}")
@@ -180,7 +195,7 @@ def main():
             if song_key not in collected_songs:
                 all_song_data.append(song)
                 collected_songs.add(song_key)
-                print(f"Added: {song['track_name']} by {song['artist_name']}")
+                print(f"Added: {song['track_name']} by {song['artist_name']}, Release Year: {song['release_date']}")
             else:
                 print(f"Skipped duplicate: {song['track_name']}")
 
