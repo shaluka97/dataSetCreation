@@ -6,15 +6,24 @@ from tqdm import tqdm  # For progress tracking
 import re  # For regular expressions to clean lyrics
 
 # --- Configuration (Keep original values) ---
-GENIUS_API_TOKEN = "put the api key here"
-TARGET_GENRE = "Soul"
-OUTPUT_CSV = "Student_dataset.csv"
+GENIUS_API_TOKEN = "2xKxlU3UNmvRG-VZhPfpvghUh-ECwI5Of_xbDPmnx0hEsfe1DMYKvMwQARHEZJlT"
+TARGET_GENRE = "K-Pop"
+OUTPUT_CSV = "Student_dataset_K-Pop.csv"
 TARGET_SONGS = 100
 DELAY_BETWEEN_REQUESTS = 10
 
 # --- Enhanced Artist List ---
 artists = [
-    "Aretha Franklin", "Marvin Gaye", "Stevie Wonder", "James Brown", "Otis Redding", "Sam Cooke", "Ray Charles", "Al Green", "Gladys Knight", "Curtis Mayfield"
+        "BTS",
+    "BLACKPINK",
+    "EXO",
+    "BIGBANG",
+    "TWICE",
+    "Girls' Generation",
+    "SHINee",
+    "SEVENTEEN",
+    "Red Velvet",
+    "2NE1"
     # ... Add more artists ...
 ]
 
