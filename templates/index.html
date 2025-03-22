@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Music Genre Classifier</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; }
+        .container { width: 80%; margin: auto; }
+        textarea { width: 100%; height: 200px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #chart-container { width: 600px; height: 400px; margin: auto; }
+         /* Style for displaying the predicted label */
+        #predicted-label {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center; /* Center the text */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Music Genre Classifier</h1>
+        <form id="lyrics-form">
+            <textarea name="lyrics" placeholder="Enter song lyrics here..."></textarea><br>
+            <button type="submit">Classify</button>
+        </form>
+        <div id="chart-container">
+            <canvas id="genre-chart"></canvas>
+        </div>
+        <div id="predicted-label"></div>
+    </div>
+
+    <script>
+     const form = document.getElementById('lyrics-form');
+     const chartCanvas = document.getElementById('genre-chart');
+     const predictedLabelDiv = document.getElementById('predicted-label');  // Get the div
+     const ctx = chartCanvas.getContext('2d');
+     let myChart = null; // Store the chart instance
+
+     form.addEventListener('submit', async (event) => {
+         event.preventDefault();
+         const formData = new FormData(form);
+
+         const response = await fetch('/', {
+             method: 'POST',
+             body: formData,
+         });
+
+         const chartData = await response.json();
+
+         // Display the predicted label
+         predictedLabelDiv.textContent = `Predicted Genre: ${chartData.predictedLabel}`;
+
+         // Destroy the previous chart instance if it exists
+         if (myChart) {
+            myChart.destroy();
+         }
+
+
+        // Use a bar chart for better visualization of probabilities.
+         myChart = new Chart(ctx, {
+            type: 'bar',  // Changed to bar chart
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Probability',
+                    data: chartData.data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)', // Use a nice color
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {  // Corrected 'yAxes' to 'y'
+                        beginAtZero: true,
+                        max: 1.0   // Set maximum to 1.0 for probabilities
+                    }
+                },
+                plugins: {  // Added plugin configuration
+                   title: {
+                     display: true,
+                     text: 'Genre Probabilities'
+                   },
+                    legend: { //Configure the legend
+                        display:false
+                    }
+                }
+            }
+        });
+     });
+
+    </script>
+</body>
+</html>
